@@ -7,6 +7,7 @@ import { Camera, Upload, ArrowRight, Trophy, User } from 'lucide-react'
 import Link from 'next/link'
 import { CameraModal } from '@/components/camera-modal'
 import { toast } from 'sonner'
+import ImageUploader from '@/components/ImageUploader' // Import the ImageUploader component
 
 export default function Home() {
   const [isCameraOpen, setIsCameraOpen] = useState(false)
@@ -15,24 +16,6 @@ export default function Home() {
     // Here you would typically send the image to your AI model
     toast.success('Image captured successfully!')
     console.log('Captured image:', image)
-  }
-
-  const handleUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (file) {
-      if (file.type.startsWith('image/')) {
-        const reader = new FileReader()
-        reader.onload = (e) => {
-          const image = e.target?.result as string
-          // Here you would typically send the image to your AI model
-          toast.success('Image uploaded successfully!')
-          console.log('Uploaded image:', image)
-        }
-        reader.readAsDataURL(file)
-      } else {
-        toast.error('Please upload an image file')
-      }
-    }
   }
 
   return (
@@ -55,16 +38,8 @@ export default function Home() {
                 <Camera className="h-5 w-5" />
                 Start Scanning
               </Button>
-              <Button size="lg" variant="outline" className="gap-2" onClick={() => {
-                const input = document.createElement('input')
-                input.type = 'file'
-                input.accept = 'image/*'
-                input.onchange = (e) => handleUpload(e as any)
-                input.click()
-              }}>
-                <Upload className="h-5 w-5" />
-                Upload Image
-              </Button>
+              {/* Replace the Upload Button with the ImageUploader component */}
+              <ImageUploader />
             </div>
           </div>
 
