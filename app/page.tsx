@@ -7,11 +7,9 @@ import { Camera, Upload, ArrowRight, Trophy, User } from 'lucide-react'
 import Link from 'next/link'
 import { CameraModal } from '@/components/camera-modal'
 import { toast } from 'sonner'
-import TeachableMachine from '@/components/TeachableMachine' // Import the TeachableMachine component
 
 export default function Home() {
   const [isCameraOpen, setIsCameraOpen] = useState(false)
-  const [isTeachableMachineOpen, setIsTeachableMachineOpen] = useState(false) // State for Teachable Machine
 
   const handleCapture = (image: string) => {
     // Here you would typically send the image to your AI model
@@ -53,26 +51,17 @@ export default function Home() {
               Upload images, earn points, and compete with others while making a real impact.
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6">
-              <Button 
-                size="lg" 
-                className="gap-2" 
-                onClick={() => setIsTeachableMachineOpen(true)} // Open Teachable Machine
-              >
+              <Button size="lg" className="gap-2" onClick={() => setIsCameraOpen(true)}>
                 <Camera className="h-5 w-5" />
                 Start Scanning
               </Button>
-              <Button 
-                size="lg" 
-                variant="outline" 
-                className="gap-2" 
-                onClick={() => {
-                  const input = document.createElement('input')
-                  input.type = 'file'
-                  input.accept = 'image/*'
-                  input.onchange = (e) => handleUpload(e as any)
-                  input.click()
-                }}
-              >
+              <Button size="lg" variant="outline" className="gap-2" onClick={() => {
+                const input = document.createElement('input')
+                input.type = 'file'
+                input.accept = 'image/*'
+                input.onchange = (e) => handleUpload(e as any)
+                input.click()
+              }}>
                 <Upload className="h-5 w-5" />
                 Upload Image
               </Button>
@@ -120,27 +109,11 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Camera Modal */}
       <CameraModal 
         isOpen={isCameraOpen}
         onClose={() => setIsCameraOpen(false)}
         onCapture={handleCapture}
       />
-
-      {/* Teachable Machine Component */}
-      {isTeachableMachineOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
-          <div className="bg-card rounded-lg p-6 w-full max-w-2xl">
-            <TeachableMachine />
-            <Button 
-              className="mt-4" 
-              onClick={() => setIsTeachableMachineOpen(false)} // Close Teachable Machine
-            >
-              Close
-            </Button>
-          </div>
-        </div>
-      )}
     </main>
   )
 }
