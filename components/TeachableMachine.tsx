@@ -1,8 +1,16 @@
 "use client"; // Mark as a Client Component in Next.js 13+
 import { useEffect, useState } from "react";
+import { Button } from "./ui/button";
 
-const TeachableMachine = () => {
+interface TeachableMachineProps {
+  image?: string; // Base64 image data (optional for webcam)
+  onClose?: () => void; // Callback to close the output screen
+}
+
+const TeachableMachine = ({ image, onClose }: TeachableMachineProps) => {
   const [predictions, setPredictions] = useState<{ className: string; probability: number }[]>([]);
+  const [isWebcamActive, setIsWebcamActive] = useState<boolean>(!image); // Enable webcam if no image is provided
+  const [webcam, setWebcam] = useState<any>(null); // Store the webcam instance
 
   useEffect(() => {
     // Load TensorFlow.js and Teachable Machine scripts dynamically
@@ -23,7 +31,7 @@ const TeachableMachine = () => {
 
       // Teachable Machine code
       const URL = "/my_model/"; // Path to your model files in the public directory
-      let model: any, webcam: any, maxPredictions: number;
+      let model: any;
 
       const init = async () => {
         const modelURL = URL + "model.json";
@@ -31,43 +39,61 @@ const TeachableMachine = () => {
 
         // Load the model and metadata
         model = await (window as any).tmImage.load(modelURL, metadataURL);
-        maxPredictions = model.getTotalClasses();
 
-        // Set up the webcam
-        const flip = true; // Whether to flip the webcam
-        webcam = new (window as any).tmImage.Webcam(200, 200, flip); // Width, height, flip
-        await webcam.setup(); // Request access to the webcam
-        await webcam.play();
-        window.requestAnimationFrame(loop);
+        if (image) {
+          // Predict using the uploaded image
+          const img = new Image();
+          img.src = image;
+          img.onload = async () => {
+            const prediction = await model.predict(img);
+            setPredictions(prediction);
+          };
+        } else {
+          // Set up the webcam
+          const flip = true; // Whether to flip the webcam
+          const webcamInstance = new (window as any).tmImage.Webcam(200, 200, flip); // Width, height, flip
+          await webcamInstance.setup(); // Request access to the webcam
+          await webcamInstance.play();
+          setWebcam(webcamInstance); // Store the webcam instance
 
-        // Append elements to the DOM
-        const webcamContainer = document.getElementById("webcam-container");
-        if (webcamContainer) {
-          webcamContainer.appendChild(webcam.canvas);
+          // Append elements to the DOM
+          const webcamContainer = document.getElementById("webcam-container");
+          if (webcamContainer) {
+            webcamContainer.appendChild(webcamInstance.canvas);
+          }
+
+          const loop = async () => {
+            webcamInstance.update(); // Update the webcam frame
+            await predict();
+            window.requestAnimationFrame(loop);
+          };
+
+          const predict = async () => {
+            const prediction = await model.predict(webcamInstance.canvas);
+            setPredictions(prediction); // Update predictions state
+          };
+
+          loop();
         }
       };
 
-      const loop = async () => {
-        webcam.update(); // Update the webcam frame
-        await predict();
-        window.requestAnimationFrame(loop);
-      };
-
-      const predict = async () => {
-        const prediction = await model.predict(webcam.canvas);
-        setPredictions(prediction); // Update predictions state
-      };
-
-      // Initialize the model and webcam
+      // Initialize the model
       await init();
     };
 
     initTeachableMachine();
-  }, []);
+
+    // Cleanup function to stop the webcam when the component unmounts
+    return () => {
+      if (webcam) {
+        webcam.stop(); // Stop the webcam
+      }
+    };
+  }, [image, webcam]);
 
   return (
     <div className="flex flex-col items-center space-y-4">
-      <div id="webcam-container" className="mb-4"></div>
+      {isWebcamActive && <div id="webcam-container" className="mb-4"></div>}
       <div id="label-container" className="w-full max-w-md">
         {predictions.map((prediction, index) => (
           <div key={index} className="flex justify-between p-2 bg-card rounded-lg mb-2">
@@ -76,6 +102,11 @@ const TeachableMachine = () => {
           </div>
         ))}
       </div>
+      {onClose && (
+        <Button className="mt-4" onClick={onClose}>
+          Close
+        </Button>
+      )}
     </div>
   );
 };
