@@ -7,14 +7,20 @@ import { Camera, Upload, ArrowRight, Trophy, User } from 'lucide-react'
 import Link from 'next/link'
 import { CameraModal } from '@/components/camera-modal'
 import { toast } from 'sonner'
+import TeachableMachine from '@/components/TeachableMachine'
+import ImageUploader from '@/components/ImageUploader' // Import the ImageUploader component
 
 export default function Home() {
   const [isCameraOpen, setIsCameraOpen] = useState(false)
+  const [isTeachableMachineOpen, setIsTeachableMachineOpen] = useState(false)
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null)
+  const [isWebcamMode, setIsWebcamMode] = useState<boolean>(false)
 
   const handleCapture = (image: string) => {
-    // Here you would typically send the image to your AI model
+    setUploadedImage(image)
+    setIsTeachableMachineOpen(true)
+    setIsWebcamMode(false)
     toast.success('Image captured successfully!')
-    console.log('Captured image:', image)
   }
 
   const handleUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -24,9 +30,9 @@ export default function Home() {
         const reader = new FileReader()
         reader.onload = (e) => {
           const image = e.target?.result as string
-          // Here you would typically send the image to your AI model
-          toast.success('Image uploaded successfully!')
-          console.log('Uploaded image:', image)
+          setUploadedImage(image)
+          setIsTeachableMachineOpen(true)
+          setIsWebcamMode(false)
         }
         reader.readAsDataURL(file)
       } else {
@@ -51,17 +57,26 @@ export default function Home() {
               Upload images, earn points, and compete with others while making a real impact.
             </p>
             <div className="mt-10 flex items-center justify-center gap-x-6">
-              <Button size="lg" className="gap-2" onClick={() => setIsCameraOpen(true)}>
+              <Button 
+                size="lg" 
+                className="gap-2" 
+                onClick={() => setIsCameraOpen(true)}
+              >
                 <Camera className="h-5 w-5" />
                 Start Scanning
               </Button>
-              <Button size="lg" variant="outline" className="gap-2" onClick={() => {
-                const input = document.createElement('input')
-                input.type = 'file'
-                input.accept = 'image/*'
-                input.onchange = (e) => handleUpload(e as any)
-                input.click()
-              }}>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="gap-2" 
+                onClick={() => {
+                  const input = document.createElement('input')
+                  input.type = 'file'
+                  input.accept = 'image/*'
+                  input.onchange = (e) => handleUpload(e as any)
+                  input.click()
+                }}
+              >
                 <Upload className="h-5 w-5" />
                 Upload Image
               </Button>
@@ -109,11 +124,28 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Camera Modal */}
       <CameraModal 
         isOpen={isCameraOpen}
         onClose={() => setIsCameraOpen(false)}
         onCapture={handleCapture}
       />
+
+      {/* Teachable Machine Component */}
+      {isTeachableMachineOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
+          <div className="bg-card rounded-lg p-6 w-full max-w-2xl">
+            <TeachableMachine 
+              image={isWebcamMode ? undefined : uploadedImage || undefined} 
+              onClose={() => {
+                setIsTeachableMachineOpen(false)
+                setUploadedImage(null)
+                setIsWebcamMode(false)
+              }} 
+            />
+          </div>
+        </div>
+      )}
     </main>
   )
 }
