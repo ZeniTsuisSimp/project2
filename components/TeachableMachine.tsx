@@ -1,6 +1,5 @@
 "use client"; // Mark as a Client Component in Next.js 13+
 import { useEffect, useState } from "react";
-import { Button } from "./ui/button";
 
 interface TeachableMachineProps {
   image?: string; // Base64 image data (optional for webcam)
@@ -103,9 +102,9 @@ const TeachableMachine = ({ image, onClose }: TeachableMachineProps) => {
         ))}
       </div>
       {onClose && (
-        <Button className="mt-4" onClick={onClose}>
+        <button className="mt-4" onClick={onClose}>
           Close
-        </Button>
+        </button>
       )}
     </div>
   );
